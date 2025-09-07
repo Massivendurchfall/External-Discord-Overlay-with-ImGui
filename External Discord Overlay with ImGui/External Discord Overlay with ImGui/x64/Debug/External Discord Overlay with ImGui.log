@@ -1,0 +1,12 @@
+﻿  Main.cpp
+C:\Users\fart\Downloads\External Discord Overlay with ImGui\External Discord Overlay with ImGui\Rendering.h(167,50): warning C4244: "Argument": Konvertierung von "LONG" in "float", möglicher Datenverlust
+  (Quelldatei „Main.cpp“ wird kompiliert)
+  
+C:\Users\fart\Downloads\External Discord Overlay with ImGui\External Discord Overlay with ImGui\Rendering.h(167,38): warning C4244: "Argument": Konvertierung von "LONG" in "float", möglicher Datenverlust
+  (Quelldatei „Main.cpp“ wird kompiliert)
+  
+C:\Users\fart\Downloads\External Discord Overlay with ImGui\External Discord Overlay with ImGui\Main.cpp(327,37): warning C4244: "Argument": Konvertierung von "float" in "UINT", möglicher Datenverlust
+C:\Users\fart\Downloads\External Discord Overlay with ImGui\External Discord Overlay with ImGui\Main.cpp(327,29): warning C4244: "Argument": Konvertierung von "float" in "UINT", möglicher Datenverlust
+  External Discord Overlay with ImGui.vcxproj -> C:\Users\fart\Downloads\External Discord Overlay with ImGui\x64\Debug\External Discord Overlay with ImGui.exe
+  Der Befehl "pwsh.exe" ist entweder falsch geschrieben oder
+  konnte nicht gefunden werden.
