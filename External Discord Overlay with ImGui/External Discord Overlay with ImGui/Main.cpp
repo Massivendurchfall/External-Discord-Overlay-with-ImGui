@@ -19,7 +19,7 @@ struct Spieler {
     float y;
 };
 
-static const uint32_t steamOffset = 0x0295D3AC;
+static const uint32_t steamOffset = 0x0298784C;
 static const uint64_t epicOffset = 0x0327E990;
 
 static const char* rollen[11] = {
@@ -280,7 +280,7 @@ int main() {
             }
 
             ImGui::SetNextWindowBgAlpha(0.95f);
-            ImGui::Begin("Among Us – Players", nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse);
+            ImGui::Begin("Among Us Â– Players", nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse);
             const char* plf = (ctx.plattform == Plattform::Steam ? "Steam" : (ctx.plattform == Plattform::Epic ? "Epic" : "Unknown"));
             ImGui::Text("Platform: %s | Players: %d", plf, (int)spielerCache.size());
             ImGui::Separator();
@@ -330,3 +330,4 @@ int main() {
     if (hProc) CloseHandle(hProc);
     return 0;
 }
+
