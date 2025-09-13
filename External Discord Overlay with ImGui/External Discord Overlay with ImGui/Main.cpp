@@ -24,7 +24,7 @@ static const uint64_t epicOffset = 0x0327E990;
 
 static const char* rollen[11] = {
     "Crewmate","Impostor","Scientist","Engineer","Guardian Angel",
-    "Shapeshifter","Dead","Dead (Imp)","Noise Maker","Phantom","Tracker"
+    "Shapeshifter","Dead","Dead (Imp)","Noise Maker","Phantom","Tracker","Crewmate"
 };
 
 static const char* farbenName[18] = {
@@ -330,5 +330,6 @@ int main() {
     if (hProc) CloseHandle(hProc);
     return 0;
 }
+
 
 
