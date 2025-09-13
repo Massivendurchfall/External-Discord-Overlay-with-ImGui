@@ -36,10 +36,11 @@ static const char* farbenHex[18] = {
 template<typename T>
 static bool lese(HANDLE h, uintptr_t adr, T& out) {
     SIZE_T g = 0;
-    return ReadProcessMemory(h, reinterpret_cast<LPCVOID>(adr), &out, sizeof(T), &g) && g == sizeof(T);
+    return adr && ReadProcessMemory(h, reinterpret_cast<LPCVOID>(adr), &out, sizeof(T), &g) && g == sizeof(T);
 }
 
 static bool leseBytes(HANDLE h, uintptr_t adr, std::vector<uint8_t>& out, SIZE_T bytes) {
+    if (!adr) return false;
     out.resize(bytes);
     SIZE_T g = 0;
     if (!ReadProcessMemory(h, reinterpret_cast<LPCVOID>(adr), out.data(), bytes, &g)) return false;
@@ -171,18 +172,21 @@ static bool istRoteRolle(const std::string& r) {
 
 static std::vector<Spieler> leseSpieler(const SpeicherKontext& ctx) {
     std::vector<Spieler> erg;
+    if (!ctx.basis) return erg;
     if (ctx.plattform == Plattform::Steam) {
         uint32_t allclients = 0, items = 0, count = 0;
         if (!lese<uint32_t>(ctx.prozess, ctx.basis + 0x38, allclients)) return erg;
         if (!lese<uint32_t>(ctx.prozess, allclients + 0x8, items)) return erg;
         if (!lese<uint32_t>(ctx.prozess, allclients + 0xC, count)) return erg;
+        if (!allclients || !items || count == 0) return erg;
         for (uint32_t i = 0; i < count; i++) {
-            uint32_t itemBase = 0, itemChar = 0, itemData = 0, rolePtr = 0, role = 0;
-            if (!lese<uint32_t>(ctx.prozess, items + 0x10 + i * 4, itemBase)) continue;
-            if (!lese<uint32_t>(ctx.prozess, itemBase + 0x10, itemChar)) continue;
-            if (!lese<uint32_t>(ctx.prozess, itemChar + 0x58, itemData)) continue;
-            if (!lese<uint32_t>(ctx.prozess, itemData + 0x4C, rolePtr)) continue;
-            if (!lese<uint32_t>(ctx.prozess, rolePtr + 0x10, role)) continue;
+            uint32_t itemBase = 0;
+            if (!lese<uint32_t>(ctx.prozess, items + 0x10 + i * 4, itemBase) || !itemBase) continue;
+            uint32_t itemChar = 0, itemData = 0, rolePtr = 0, role = 0;
+            if (!lese<uint32_t>(ctx.prozess, itemBase + 0x10, itemChar) || !itemChar) continue;
+            if (!lese<uint32_t>(ctx.prozess, itemChar + 0x58, itemData) || !itemData) continue;
+            if (!lese<uint32_t>(ctx.prozess, itemData + 0x4C, rolePtr) || !rolePtr) continue;
+            lese<uint32_t>(ctx.prozess, rolePtr + 0x10, role);
             std::string rolle = rolleName(role);
             uint32_t rb2d = 0, rb2d_cached = 0;
             float x = 0.f, y = 0.f;
@@ -194,15 +198,7 @@ static std::vector<Spieler> leseSpieler(const SpeicherKontext& ctx) {
             uint32_t namePtr = 0; lese<uint32_t>(ctx.prozess, itemBase + 0x1C, namePtr);
             std::string name = leseUtf16(ctx.prozess, namePtr, false);
             bool alive = !(rolle == "Dead" || rolle == "Dead (Imp)" || rolle == "Guardian Angel");
-            Spieler s;
-            s.schluessel = name;
-            s.name = name;
-            s.rolle = rolle;
-            s.lebendig = alive;
-            s.farbeId = colorId;
-            s.farbeName = farbeNameAus(colorId);
-            s.farbeHex = farbeHexAus(colorId);
-            s.x = x; s.y = y;
+            Spieler s{ name,name,rolle,alive,colorId,farbeNameAus(colorId),farbeHexAus(colorId),x,y };
             if (!s.name.empty()) erg.push_back(std::move(s));
         }
     }
@@ -211,13 +207,15 @@ static std::vector<Spieler> leseSpieler(const SpeicherKontext& ctx) {
         if (!lese<uint64_t>(ctx.prozess, ctx.basis + 0x58, allclients)) return erg;
         if (!lese<uint64_t>(ctx.prozess, allclients + 0x10, items)) return erg;
         if (!lese<uint32_t>(ctx.prozess, allclients + 0x18, count)) return erg;
+        if (!allclients || !items || count == 0) return erg;
         for (uint32_t i = 0; i < count; i++) {
-            uint64_t itemBase = 0, itemChar = 0, itemData = 0, rolePtr = 0; uint32_t role = 0;
-            if (!lese<uint64_t>(ctx.prozess, items + 0x20 + i * 8, itemBase)) continue;
-            if (!lese<uint64_t>(ctx.prozess, itemBase + 0x18, itemChar)) continue;
-            if (!lese<uint64_t>(ctx.prozess, itemChar + 0x78, itemData)) continue;
-            if (!lese<uint64_t>(ctx.prozess, itemData + 0x68, rolePtr)) continue;
-            if (!lese<uint32_t>(ctx.prozess, rolePtr + 0x20, role)) continue;
+            uint64_t itemBase = 0;
+            if (!lese<uint64_t>(ctx.prozess, items + 0x20 + i * 8, itemBase) || !itemBase) continue;
+            uint64_t itemChar = 0, itemData = 0, rolePtr = 0; uint32_t role = 0;
+            if (!lese<uint64_t>(ctx.prozess, itemBase + 0x18, itemChar) || !itemChar) continue;
+            if (!lese<uint64_t>(ctx.prozess, itemChar + 0x78, itemData) || !itemData) continue;
+            if (!lese<uint64_t>(ctx.prozess, itemData + 0x68, rolePtr) || !rolePtr) continue;
+            lese<uint32_t>(ctx.prozess, rolePtr + 0x20, role);
             std::string rolle = rolleName(role);
             uint64_t rb2d = 0, rb2d_cached = 0; float x = 0.f, y = 0.f;
             if (lese<uint64_t>(ctx.prozess, itemChar + 0x148, rb2d) && lese<uint64_t>(ctx.prozess, rb2d + 0x10, rb2d_cached)) {
@@ -228,15 +226,7 @@ static std::vector<Spieler> leseSpieler(const SpeicherKontext& ctx) {
             uint64_t namePtr = 0; lese<uint64_t>(ctx.prozess, itemBase + 0x30, namePtr);
             std::string name = leseUtf16(ctx.prozess, namePtr, true);
             bool alive = !(rolle == "Dead" || rolle == "Dead (Imp)" || rolle == "Guardian Angel");
-            Spieler s;
-            s.schluessel = name;
-            s.name = name;
-            s.rolle = rolle;
-            s.lebendig = alive;
-            s.farbeId = colorId;
-            s.farbeName = farbeNameAus(colorId);
-            s.farbeHex = farbeHexAus(colorId);
-            s.x = x; s.y = y;
+            Spieler s{ name,name,rolle,alive,colorId,farbeNameAus(colorId),farbeHexAus(colorId),x,y };
             if (!s.name.empty()) erg.push_back(std::move(s));
         }
     }
@@ -313,14 +303,12 @@ int main() {
                         ImGui::TextUnformatted(s.rolle.c_str());
                     }
                     ImGui::TableSetColumnIndex(2);
-                    {
-                        ImVec4 c = hexZuFarbe(s.farbeHex);
-                        ImGui::PushID((int)i);
-                        ImGui::ColorButton("##c", c, ImGuiColorEditFlags_NoTooltip | ImGuiColorEditFlags_NoAlpha, ImVec2(18, 18));
-                        ImGui::SameLine();
-                        ImGui::TextColored(c, "%s", s.farbeName.c_str());
-                        ImGui::PopID();
-                    }
+                    ImVec4 c = hexZuFarbe(s.farbeHex);
+                    ImGui::PushID((int)i);
+                    ImGui::ColorButton("##c", c, ImGuiColorEditFlags_NoTooltip | ImGuiColorEditFlags_NoAlpha, ImVec2(18, 18));
+                    ImGui::SameLine();
+                    ImGui::TextColored(c, "%s", s.farbeName.c_str());
+                    ImGui::PopID();
                     ImGui::TableSetColumnIndex(3);
                     ImGui::TextUnformatted(s.lebendig ? "Yes" : "No");
                     ImGui::TableSetColumnIndex(4);
