@@ -22,11 +22,6 @@ struct Spieler {
 static const uint32_t steamOffset = 0x0298784C;
 static const uint64_t epicOffset = 0x0327E990;
 
-static const char* rollen[11] = {
-    "Crewmate","Impostor","Scientist","Engineer","Guardian Angel",
-    "Shapeshifter","Dead","Dead (Imp)","Noise Maker","Phantom","Tracker","Imposter"
-};
-
 static const char* farbenName[18] = {
     "Red","Blue","Green","Pink","Orange","Yellow","Black","White","Purple",
     "Brown","Cyan","Lime","Maroon","Rose","Banana","Grey","Tan","Coral"
@@ -111,8 +106,22 @@ static bool ermittleBasis(SpeicherKontext& ctx) {
 }
 
 static std::string rolleName(uint32_t id) {
-    if (id < 11) return rollen[id];
-    return std::to_string(id);
+    switch (id) {
+    case 0:  return "Crewmate";
+    case 1:  return "Impostor";
+    case 2:  return "Scientist";
+    case 3:  return "Engineer";
+    case 4:  return "Guardian Angel";
+    case 5:  return "Shapeshifter";
+    case 6:  return "Dead";
+    case 7:  return "Dead (Imp)";
+    case 8:  return "Noise Maker";
+    case 9:  return "Phantom";
+    case 10: return "Tracker";
+    case 12: return "Crewmate";
+    case 18: return "Impostor";
+    default: return "Unknown(" + std::to_string(id) + ")";
+    }
 }
 
 static std::string farbeNameAus(uint32_t id) {
@@ -280,7 +289,7 @@ int main() {
             }
 
             ImGui::SetNextWindowBgAlpha(0.95f);
-            ImGui::Begin("Among Us  Players", nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse);
+            ImGui::Begin("Among Us - Players", nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse);
             const char* plf = (ctx.plattform == Plattform::Steam ? "Steam" : (ctx.plattform == Plattform::Epic ? "Epic" : "Unknown"));
             ImGui::Text("Platform: %s | Players: %d", plf, (int)spielerCache.size());
             ImGui::Separator();
@@ -330,7 +339,3 @@ int main() {
     if (hProc) CloseHandle(hProc);
     return 0;
 }
-
-
-
-
