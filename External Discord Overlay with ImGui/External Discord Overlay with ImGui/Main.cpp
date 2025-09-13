@@ -20,7 +20,7 @@ struct Spieler {
 };
 
 static const uint32_t steamOffset = 0x0298784C;
-static const uint64_t epicOffset = 0x0327E990;
+static const uint64_t epicOffset  = 0x0327E990;
 
 static const char* farbenName[18] = {
     "Red","Blue","Green","Pink","Orange","Yellow","Black","White","Purple",
@@ -94,8 +94,7 @@ static bool ermittleBasis(SpeicherKontext& ctx) {
         if (!lese<uint32_t>(ctx.prozess, b, c)) return false;
         ctx.basis = c;
         return ctx.basis != 0;
-    }
-    else if (ctx.plattform == Plattform::Epic) {
+    } else if (ctx.plattform == Plattform::Epic) {
         uint64_t a = 0, b = 0, c = 0;
         if (!lese<uint64_t>(ctx.prozess, ctx.gameAsm + epicOffset, a)) return false;
         if (!lese<uint64_t>(ctx.prozess, a + 0xB8, b)) return false;
@@ -108,20 +107,20 @@ static bool ermittleBasis(SpeicherKontext& ctx) {
 
 static std::string rolleName(uint32_t id) {
     switch (id) {
-    case 0:  return "Crewmate";
-    case 1:  return "Impostor";
-    case 2:  return "Scientist";
-    case 3:  return "Engineer";
-    case 4:  return "Guardian Angel";
-    case 5:  return "Shapeshifter";
-    case 6:  return "Dead";
-    case 7:  return "Dead (Imp)";
-    case 8:  return "Noise Maker";
-    case 9:  return "Phantom";
-    case 10: return "Tracker";
-    case 12: return "Crewmate";
-    case 18: return "Impostor";
-    default: return "Unknown(" + std::to_string(id) + ")";
+        case 0:  return "Crewmate";
+        case 1:  return "Impostor";
+        case 2:  return "Scientist";
+        case 3:  return "Engineer";
+        case 4:  return "Guardian Angel";
+        case 5:  return "Shapeshifter";
+        case 6:  return "Dead";
+        case 7:  return "Dead (Imp)";
+        case 8:  return "Noise Maker";
+        case 9:  return "Phantom";
+        case 10: return "Tracker";
+        case 12: return "Crewmate";
+        case 18: return "Impostor";
+        default: return "Unknown(" + std::to_string(id) + ")";
     }
 }
 
@@ -159,7 +158,7 @@ static ImVec4 hexZuFarbe(const std::string& hex) {
         if (c >= 'a' && c <= 'f') return 10 + (c - 'a');
         if (c >= 'A' && c <= 'F') return 10 + (c - 'A');
         return 0;
-        };
+    };
     int r = val(hex[1]) * 16 + val(hex[2]);
     int g = val(hex[3]) * 16 + val(hex[4]);
     int b = val(hex[5]) * 16 + val(hex[6]);
@@ -201,8 +200,7 @@ static std::vector<Spieler> leseSpieler(const SpeicherKontext& ctx) {
             Spieler s{ name,name,rolle,alive,colorId,farbeNameAus(colorId),farbeHexAus(colorId),x,y };
             if (!s.name.empty()) erg.push_back(std::move(s));
         }
-    }
-    else if (ctx.plattform == Plattform::Epic) {
+    } else if (ctx.plattform == Plattform::Epic) {
         uint64_t allclients = 0, items = 0; uint32_t count = 0;
         if (!lese<uint64_t>(ctx.prozess, ctx.basis + 0x58, allclients)) return erg;
         if (!lese<uint64_t>(ctx.prozess, allclients + 0x10, items)) return erg;
@@ -264,7 +262,7 @@ int main() {
 
         RECT r{}; GetClientRect(zielFenster, &r);
         float breite = float(r.right - r.left);
-        float hoehe = float(r.bottom - r.top);
+        float hoehe  = float(r.bottom - r.top);
         Rendering::HandleInput();
         Rendering::BeginFrame();
 
@@ -293,26 +291,41 @@ int main() {
                 for (size_t i = 0; i < spielerCache.size(); ++i) {
                     auto& s = spielerCache[i];
                     ImGui::TableNextRow();
+
+                    if (!s.lebendig) {
+                        ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg0, IM_COL32(128,128,128,35));
+                    }
+
+                    ImVec4 textAlive = ImVec4(1,1,1,1);
+                    ImVec4 textDead  = ImVec4(0.6f,0.6f,0.6f,1);
+                    ImVec4 textColor = s.lebendig ? textAlive : textDead;
+
+                    ImVec4 roleColor;
+                    if (!s.lebendig) roleColor = textDead;
+                    else if (istRoteRolle(s.rolle)) roleColor = ImVec4(1.0f,0.25f,0.25f,1.0f);
+                    else roleColor = textAlive;
+
+                    ImVec4 colorCol = hexZuFarbe(s.farbeHex);
+                    if (!s.lebendig) colorCol.w = 0.4f;
+
                     ImGui::TableSetColumnIndex(0);
-                    ImGui::TextUnformatted(s.name.c_str());
+                    ImGui::TextColored(textColor, "%s", s.name.c_str());
+
                     ImGui::TableSetColumnIndex(1);
-                    if (istRoteRolle(s.rolle)) {
-                        ImGui::TextColored(ImVec4(1.0f, 0.25f, 0.25f, 1.0f), "%s", s.rolle.c_str());
-                    }
-                    else {
-                        ImGui::TextUnformatted(s.rolle.c_str());
-                    }
+                    ImGui::TextColored(roleColor, "%s", s.rolle.c_str());
+
                     ImGui::TableSetColumnIndex(2);
-                    ImVec4 c = hexZuFarbe(s.farbeHex);
                     ImGui::PushID((int)i);
-                    ImGui::ColorButton("##c", c, ImGuiColorEditFlags_NoTooltip | ImGuiColorEditFlags_NoAlpha, ImVec2(18, 18));
+                    ImGui::ColorButton("##c", colorCol, ImGuiColorEditFlags_NoTooltip | ImGuiColorEditFlags_NoAlpha, ImVec2(18, 18));
                     ImGui::SameLine();
-                    ImGui::TextColored(c, "%s", s.farbeName.c_str());
+                    ImGui::TextColored(colorCol, "%s", s.farbeName.c_str());
                     ImGui::PopID();
+
                     ImGui::TableSetColumnIndex(3);
-                    ImGui::TextUnformatted(s.lebendig ? "Yes" : "No");
+                    ImGui::TextColored(textColor, "%s", s.lebendig ? "Yes" : "No");
+
                     ImGui::TableSetColumnIndex(4);
-                    ImGui::Text("(%.2f, %.2f)", s.x, s.y);
+                    ImGui::TextColored(textColor, "(%.2f, %.2f)", s.x, s.y);
                 }
                 ImGui::EndTable();
             }
