@@ -118,8 +118,8 @@ static std::string rolleName(uint32_t id) {
         case 8:  return "Noise Maker";
         case 9:  return "Phantom";
         case 10: return "Tracker";
-        case 12: return "Crewmate";
-        case 18: return "Impostor";
+        case 12: return "Detective";
+        case 18: return "Viper";
         default: return "Unknown(" + std::to_string(id) + ")";
     }
 }
@@ -166,7 +166,7 @@ static ImVec4 hexZuFarbe(const std::string& hex) {
 }
 
 static bool istRoteRolle(const std::string& r) {
-    return r == "Impostor" || r == "Shapeshifter" || r == "Phantom";
+    return r == "Impostor" || r == "Shapeshifter" || r == "Phantom" || r == "Viper";
 }
 
 static std::vector<Spieler> leseSpieler(const SpeicherKontext& ctx) {
