@@ -20,8 +20,8 @@ struct Player {
     float y;
 };
 
-static const uint32_t steamOffset = 0x0298784C;
-static const uint64_t epicOffset = 0x0327E990;
+static const uint32_t steamOffset = 0x02988984;
+static const uint64_t epicOffset = 0x032810C0;
 
 static const char* colorNames[18] = {
     "Red","Blue","Green","Pink","Orange","Yellow","Black","White","Purple",
